@@ -9,12 +9,14 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 import { useWorkout } from "@/context/WorkoutContext";
 import { useColors } from "@/hooks/useColors";
 
 export default function ProfileScreen() {
   const colors = useColors();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { sessions, settings, updateSettings } = useWorkout();
 
