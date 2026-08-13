@@ -39,6 +39,7 @@ export default function ActiveWorkoutScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { getWorkoutById, getExerciseById, addSession, settings } = useWorkout();
+  const [milestoneNote, setMilestoneNote] = useState("");
 
   const workout = getWorkoutById(id ?? "");
 
@@ -172,6 +173,7 @@ export default function ActiveWorkoutScreen() {
       exerciseLogs: logs,
       totalVolume,
       totalSets,
+      notes: milestoneNote.trim() || undefined,
     };
     addSession(session);
     setIsFinished(true);
@@ -206,6 +208,34 @@ export default function ActiveWorkoutScreen() {
         <Text style={[styles.finishSubtitle, { color: colors.mutedForeground }]}>
           {workout.name}
         </Text>
+
+        <View style={{ width: "100%", marginTop: 16 }}>
+          <Text style={[styles.inputLabel, { color: colors.mutedForeground, textAlign: "left", marginBottom: 6 }]}>
+            MILESTONE NOTE (OPTIONAL)
+          </Text>
+          <TextInput
+            style={[
+              styles.stepValue,
+              {
+                flex: 0,
+                width: "100%",
+                height: 52,
+                textAlign: "left",
+                paddingHorizontal: 14,
+                fontSize: 15,
+                fontFamily: "Inter_500Medium",
+                color: colors.foreground,
+                backgroundColor: colors.input,
+                borderWidth: 1,
+                borderColor: colors.border,
+              },
+            ]}
+            placeholder="e.g. New PR on bench press!"
+            placeholderTextColor={colors.mutedForeground}
+            value={milestoneNote}
+            onChangeText={setMilestoneNote}
+          />
+        </View>
 
         <View style={styles.finishStats}>
           {[

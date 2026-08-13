@@ -32,6 +32,7 @@ export interface Workout {
   exercises: WorkoutExercise[];
   estimatedMinutes: number;
   isCustom: boolean;
+  notes?: string;
 }
 
 export interface SetLog {
@@ -55,6 +56,7 @@ export interface Session {
   exerciseLogs: ExerciseLog[];
   totalVolume: number;
   totalSets: number;
+  notes?: string;
 }
 
 export interface Settings {
@@ -203,6 +205,8 @@ interface WorkoutContextType {
   schedule: Record<string, number[]>;
   addSession: (session: Session) => Promise<void>;
   addCustomWorkout: (workout: Workout) => Promise<void>;
+  updateWorkout: (workout: Workout) => Promise<void>;
+  updateSessionNotes: (sessionId: string, notes: string) => Promise<void>;
   deleteCustomWorkout: (id: string) => Promise<void>;
   updateSettings: (partial: Partial<Settings>) => Promise<void>;
   addCategory: (name: string) => Promise<void>;
@@ -254,9 +258,25 @@ export function WorkoutProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const updateSessionNotes = useCallback(async (sessionId: string, notes: string) => {
+    setSessions((prev) => {
+      const updated = prev.map((s) => (s.id === sessionId ? { ...s, notes } : s));
+      AsyncStorage.setItem(STORAGE_KEYS.sessions, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   const addCustomWorkout = useCallback(async (workout: Workout) => {
     setCustomWorkouts((prev) => {
       const updated = [...prev, workout];
+      AsyncStorage.setItem(STORAGE_KEYS.customWorkouts, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const updateWorkout = useCallback(async (workout: Workout) => {
+    setCustomWorkouts((prev) => {
+      const updated = prev.map((w) => (w.id === workout.id ? workout : w));
       AsyncStorage.setItem(STORAGE_KEYS.customWorkouts, JSON.stringify(updated));
       return updated;
     });
@@ -328,7 +348,9 @@ export function WorkoutProvider({ children }: { children: React.ReactNode }) {
         customCategories,
         schedule,
         addSession,
+        updateSessionNotes,
         addCustomWorkout,
+        updateWorkout,
         deleteCustomWorkout,
         updateSettings,
         addCategory,

@@ -82,6 +82,15 @@ function SessionCard({ session }: { session: Session }) {
           <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Volume</Text>
         </View>
       </View>
+
+      {session.notes ? (
+        <View style={[styles.noteBox, { backgroundColor: colors.primary + "15", borderColor: colors.primary + "30" }]}>
+          <Ionicons name="star" size={13} color={colors.primary} />
+          <Text style={[styles.noteText, { color: colors.foreground }]} numberOfLines={2}>
+            {session.notes}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -133,6 +142,21 @@ export default function HistoryScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  noteBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    marginTop: 12,
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  noteText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    lineHeight: 18,
+  },
   header: {
     paddingHorizontal: 20,
     paddingBottom: 16,

@@ -85,12 +85,20 @@ export default function WorkoutDetailScreen() {
           <Ionicons name="chevron-back" size={20} color={colors.foreground} />
         </TouchableOpacity>
         {workout.isCustom && (
-          <TouchableOpacity
-            style={[styles.backBtn, { backgroundColor: colors.secondary }]}
-            onPress={handleDelete}
-          >
-            <Ionicons name="trash-outline" size={18} color={colors.destructive} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <TouchableOpacity
+              style={[styles.backBtn, { backgroundColor: colors.secondary }]}
+              onPress={() => router.push(`/create-workout?id=${workout.id}` as any)}
+            >
+              <Ionicons name="pencil-outline" size={18} color={colors.foreground} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.backBtn, { backgroundColor: colors.secondary }]}
+              onPress={handleDelete}
+            >
+              <Ionicons name="trash-outline" size={18} color={colors.destructive} />
+            </TouchableOpacity>
+          </View>
         )}
       </View>
 

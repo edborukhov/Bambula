@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
   Platform,
@@ -197,15 +197,32 @@ export default function CreateWorkoutScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { addCustomWorkout, customCategories, addCategory, setWorkoutSchedule } = useWorkout();
+  const { addCustomWorkout, updateWorkout, customCategories, addCategory, setWorkoutSchedule, getWorkoutById, schedule } = useWorkout();
+  const { id: editId } = useLocalSearchParams<{ id?: string }>();
+  const existingWorkout = editId ? getWorkoutById(editId) : undefined;
+  const isEditMode = !!existingWorkout;
 
-  const [workoutName, setWorkoutName] = useState("");
-  const [category, setCategory] = useState(PRESET_CATEGORIES[0]);
-  const [exercises, setExercises] = useState<ExerciseEntry[]>([]);
-  const [scheduledDays, setScheduledDays] = useState<number[]>([]);
+  const [workoutName, setWorkoutName] = useState(existingWorkout?.name ?? "");
+  const [category, setCategory] = useState(existingWorkout?.category ?? PRESET_CATEGORIES[0]);
+  const [exercises, setExercises] = useState<ExerciseEntry[]>(
+    existingWorkout
+      ? existingWorkout.exercises.map((e) => ({
+          id: generateId(),
+          name: e.customName ?? e.exerciseId,
+          sets: e.targetSets,
+          reps: e.targetReps,
+          weight: e.defaultWeight,
+          restSeconds: e.restSeconds,
+        }))
+      : []
+  );
+  const [scheduledDays, setScheduledDays] = useState<number[]>(
+    existingWorkout ? (schedule[existingWorkout.id] ?? []) : []
+  );
   const [isAddingFocus, setIsAddingFocus] = useState(false);
   const [newFocusText, setNewFocusText] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [workoutNotes, setWorkoutNotes] = useState(existingWorkout?.notes ?? "");
   const newFocusRef = useRef<TextInput>(null);
 
   const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
@@ -290,16 +307,21 @@ export default function CreateWorkoutScreen() {
     }));
 
     const workout: Workout = {
-      id: generateId(),
+      id: existingWorkout?.id ?? generateId(),
       name: workoutName.trim(),
       description: `Custom ${category.toLowerCase()} workout.`,
       category,
       exercises: workoutExercises,
       estimatedMinutes,
       isCustom: true,
+      notes: workoutNotes.trim() || undefined,
     };
 
-    addCustomWorkout(workout);
+    if (isEditMode) {
+      updateWorkout(workout);
+    } else {
+      addCustomWorkout(workout);
+    }
     if (scheduledDays.length > 0) {
       setWorkoutSchedule(workout.id, scheduledDays);
     }
@@ -316,7 +338,7 @@ export default function CreateWorkoutScreen() {
         >
           <Ionicons name="close" size={20} color={colors.foreground} />
         </TouchableOpacity>
-        <Text style={[styles.navTitle, { color: colors.foreground }]}>New Workout</Text>
+        <Text style={[styles.navTitle, { color: colors.foreground }]}>{isEditMode ? "Edit Workout" : "New Workout"}</Text>
         <TouchableOpacity
           style={[
             styles.saveBtn,
@@ -444,6 +466,30 @@ export default function CreateWorkoutScreen() {
               </TouchableOpacity>
             )}
           </ScrollView>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>NOTES</Text>
+          <TextInput
+            value={workoutNotes}
+            onChangeText={setWorkoutNotes}
+            placeholder="e.g. Focus on controlled tempo, avoid locking out knees…"
+            placeholderTextColor={colors.mutedForeground}
+            style={[
+              styles.scheduleCard,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                color: colors.foreground,
+                fontSize: 14,
+                fontFamily: "Inter_500Medium",
+                minHeight: 70,
+                textAlignVertical: "top",
+                padding: 14,
+              },
+            ]}
+            multiline
+          />
         </View>
 
         <View style={styles.section}>
