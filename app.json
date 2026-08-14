@@ -15,7 +15,10 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.fittrack.app"
+      "bundleIdentifier": "com.edborukhov.bambula",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {},
     "web": {
@@ -34,6 +37,14 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {
+        "origin": "https://replit.com/"
+      },
+      "eas": {
+        "projectId": "50006d9d-8b5f-4a4a-9474-d109a7069c46"
+      }
     }
   }
 }

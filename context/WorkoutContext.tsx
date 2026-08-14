@@ -33,6 +33,7 @@ export interface Workout {
   estimatedMinutes: number;
   isCustom: boolean;
   notes?: string;
+  workoutType?: "traditional" | "circuit";
 }
 
 export interface SetLog {

@@ -59,9 +59,32 @@ export default function ActiveWorkoutScreen() {
     });
   }, [workout, getExerciseById]);
 
-  const [exerciseIndex, setExerciseIndex] = useState(0);
-  const [setIndex, setSetIndex] = useState(0);
-  const [completedSets, setCompletedSets] = useState<SetLog[]>([]);
+  const isCircuit = workout?.workoutType === "circuit";
+
+  const stepQueue = useMemo(() => {
+    const steps: { exerciseIndex: number; setNumber: number }[] = [];
+    if (exerciseData.length === 0) return steps;
+    if (isCircuit) {
+      const maxSets = Math.max(...exerciseData.map((e) => e.targetSets));
+      for (let round = 0; round < maxSets; round++) {
+        exerciseData.forEach((ex, exIdx) => {
+          if (round < ex.targetSets) {
+            steps.push({ exerciseIndex: exIdx, setNumber: round });
+          }
+        });
+      }
+    } else {
+      exerciseData.forEach((ex, exIdx) => {
+        for (let s = 0; s < ex.targetSets; s++) {
+          steps.push({ exerciseIndex: exIdx, setNumber: s });
+        }
+      });
+    }
+    return steps;
+  }, [exerciseData, isCircuit]);
+
+  const [stepIndex, setStepIndex] = useState(0);
+  const [exerciseSetLogs, setExerciseSetLogs] = useState<Record<number, SetLog[]>>({});
   const [allLogs, setAllLogs] = useState<ExerciseLog[]>([]);
   const [reps, setReps] = useState(exerciseData[0]?.targetReps ?? 10);
   const [weight, setWeight] = useState(exerciseData[0]?.defaultWeight ?? 0);
@@ -71,7 +94,10 @@ export default function ActiveWorkoutScreen() {
   const [isFinished, setIsFinished] = useState(false);
   const progressAnim = useRef(new Animated.Value(0)).current;
 
+  const currentStep = stepQueue[stepIndex];
+  const exerciseIndex = currentStep?.exerciseIndex ?? 0;
   const currentExercise = exerciseData[exerciseIndex];
+  const completedSets = exerciseSetLogs[exerciseIndex] ?? [];
 
   useEffect(() => {
     if (exerciseData.length > 0) {
@@ -122,37 +148,36 @@ export default function ActiveWorkoutScreen() {
   }
 
   const handleLogSet = () => {
-    if (!currentExercise) return;
+    if (!currentExercise || !currentStep) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     const newSet: SetLog = { reps, weight, completed: true };
-    const updatedSets = [...completedSets, newSet];
+    const updatedExerciseSetLogs = {
+      ...exerciseSetLogs,
+      [exerciseIndex]: [...(exerciseSetLogs[exerciseIndex] ?? []), newSet],
+    };
+    setExerciseSetLogs(updatedExerciseSetLogs);
 
-    if (updatedSets.length >= currentExercise.targetSets) {
-      const exerciseLog: ExerciseLog = {
-        exerciseId: currentExercise.exerciseId,
-        exerciseName: currentExercise.exerciseName,
-        sets: updatedSets,
-      };
-      const updatedLogs = [...allLogs, exerciseLog];
+    const nextStepIndex = stepIndex + 1;
 
-      if (exerciseIndex + 1 >= exerciseData.length) {
-        setAllLogs(updatedLogs);
-        saveAndFinish(updatedLogs);
-      } else {
-        setAllLogs(updatedLogs);
-        const nextEx = exerciseData[exerciseIndex + 1];
-        setExerciseIndex(exerciseIndex + 1);
-        setSetIndex(0);
-        setCompletedSets([]);
-        setReps(nextEx.targetReps);
-        setWeight(nextEx.defaultWeight);
-      }
+    if (nextStepIndex >= stepQueue.length) {
+      const finalLogs: ExerciseLog[] = exerciseData.map((ex, idx) => ({
+        exerciseId: ex.exerciseId,
+        exerciseName: ex.exerciseName,
+        sets: updatedExerciseSetLogs[idx] ?? [],
+      })).filter((log) => log.sets.length > 0);
+      setAllLogs(finalLogs);
+      saveAndFinish(finalLogs);
     } else {
-      setCompletedSets(updatedSets);
-      setSetIndex(setIndex + 1);
-      setRestTimeLeft(currentExercise.restSeconds);
-      setIsResting(true);
+      const nextStep = stepQueue[nextStepIndex];
+      const nextEx = exerciseData[nextStep.exerciseIndex];
+      setStepIndex(nextStepIndex);
+      setReps(nextEx.targetReps);
+      setWeight(nextEx.defaultWeight);
+      if (!isCircuit) {
+        setRestTimeLeft(currentExercise.restSeconds);
+        setIsResting(true);
+      }
     }
   };
 
@@ -446,11 +471,11 @@ export default function ActiveWorkoutScreen() {
 
         <View style={styles.exerciseNav}>
           <Text style={[styles.exerciseNavLabel, { color: colors.mutedForeground }]}>
-            {exerciseIndex + 1} / {exerciseData.length} exercises
+            Step {stepIndex + 1} / {stepQueue.length}
           </Text>
-          {exerciseIndex + 1 < exerciseData.length && (
+          {stepIndex + 1 < stepQueue.length && (
             <Text style={[styles.nextExercise, { color: colors.mutedForeground }]}>
-              Next: {exerciseData[exerciseIndex + 1].exerciseName}
+              Next: {exerciseData[stepQueue[stepIndex + 1].exerciseIndex].exerciseName}
             </Text>
           )}
         </View>

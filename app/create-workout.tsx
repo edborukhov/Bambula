@@ -223,6 +223,7 @@ export default function CreateWorkoutScreen() {
   const [newFocusText, setNewFocusText] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [workoutNotes, setWorkoutNotes] = useState(existingWorkout?.notes ?? "");
+  const [workoutType, setWorkoutType] = useState<"traditional" | "circuit">(existingWorkout?.workoutType ?? "traditional");
   const newFocusRef = useRef<TextInput>(null);
 
   const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
@@ -315,6 +316,7 @@ export default function CreateWorkoutScreen() {
       estimatedMinutes,
       isCustom: true,
       notes: workoutNotes.trim() || undefined,
+      workoutType,
     };
 
     if (isEditMode) {
@@ -466,6 +468,39 @@ export default function CreateWorkoutScreen() {
               </TouchableOpacity>
             )}
           </ScrollView>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>WORKOUT STYLE</Text>
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <TouchableOpacity
+              onPress={() => setWorkoutType("traditional")}
+              style={[
+                styles.catChip,
+                { flex: 1, justifyContent: "center", backgroundColor: workoutType === "traditional" ? colors.primary : colors.secondary },
+              ]}
+            >
+              <Text style={[styles.catChipText, { color: workoutType === "traditional" ? colors.primaryForeground : colors.mutedForeground, textAlign: "center" }]}>
+                Traditional
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setWorkoutType("circuit")}
+              style={[
+                styles.catChip,
+                { flex: 1, justifyContent: "center", backgroundColor: workoutType === "circuit" ? colors.primary : colors.secondary },
+              ]}
+            >
+              <Text style={[styles.catChipText, { color: workoutType === "circuit" ? colors.primaryForeground : colors.mutedForeground, textAlign: "center" }]}>
+                Circuit
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={{ color: colors.mutedForeground, fontSize: 12, marginTop: 8, fontFamily: "Inter_400Regular" }}>
+            {workoutType === "circuit"
+              ? "Cycle through all exercises one set at a time, repeating until each hits its target sets."
+              : "Complete all sets of one exercise before moving to the next."}
+          </Text>
         </View>
 
         <View style={styles.section}>
