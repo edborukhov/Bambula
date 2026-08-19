@@ -91,6 +91,7 @@ export default function ActiveWorkoutScreen() {
   const [isResting, setIsResting] = useState(false);
   const [restTimeLeft, setRestTimeLeft] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const startTimeRef = useRef(Date.now());
   const [isFinished, setIsFinished] = useState(false);
   const progressAnim = useRef(new Animated.Value(0)).current;
 
@@ -108,7 +109,9 @@ export default function ActiveWorkoutScreen() {
 
   useEffect(() => {
     if (isFinished) return;
-    const interval = setInterval(() => setElapsedSeconds((p) => p + 1), 1000);
+    const interval = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000));
+    }, 1000);
     return () => clearInterval(interval);
   }, [isFinished]);
 
