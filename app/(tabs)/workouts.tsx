@@ -79,7 +79,7 @@ export default function WorkoutsScreen() {
                 styles.filterText,
                 {
                   color:
-                    activeFilter === f ? colors.primaryForeground : colors.mutedForeground,
+                    activeFilter === f ? colors.primaryForeground : colors.secondaryForeground,
                 },
               ]}
             >
@@ -167,14 +167,16 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 8,
     flexDirection: "row",
+    alignItems: "flex-start",
   },
   filterChip: {
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 9,
     borderRadius: 20,
   },
   filterText: {
     fontSize: 13,
+    lineHeight: 18,
     fontFamily: "Inter_600SemiBold",
   },
   list: {

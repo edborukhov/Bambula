@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Workout, WorkoutExercise, useWorkout } from "@/context/WorkoutContext";
+import { Workout, WorkoutExercise, EXERCISES, useWorkout } from "@/context/WorkoutContext";
 import { useColors } from "@/hooks/useColors";
 
 const PRESET_CATEGORIES = [
@@ -297,15 +297,32 @@ export default function CreateWorkoutScreen() {
       )
     );
 
-    const workoutExercises: WorkoutExercise[] = exercises.map((e) => ({
-      exerciseId: `custom-${generateId()}`,
-      targetSets: e.sets,
-      targetReps: e.reps,
-      defaultWeight: e.weight,
-      restSeconds: e.restSeconds,
-      customName: e.name.trim(),
-      customMuscleGroup: category,
-    }));
+    const workoutExercises: WorkoutExercise[] = exercises.map((e) => {
+      const typedName = e.name.trim();
+      const matchedExercise = EXERCISES.find(
+        (ex) => ex.name.toLowerCase() === typedName.toLowerCase()
+      );
+
+      if (matchedExercise) {
+        return {
+          exerciseId: matchedExercise.id,
+          targetSets: e.sets,
+          targetReps: e.reps,
+          defaultWeight: e.weight,
+          restSeconds: e.restSeconds,
+        };
+      }
+
+      return {
+        exerciseId: `custom-${generateId()}`,
+        targetSets: e.sets,
+        targetReps: e.reps,
+        defaultWeight: e.weight,
+        restSeconds: e.restSeconds,
+        customName: typedName,
+        customMuscleGroup: category,
+      };
+    });
 
     const workout: Workout = {
       id: existingWorkout?.id ?? generateId(),
